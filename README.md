@@ -1,2 +1,42 @@
 # Student_Management_Records
 This is our final semester Project is about Student management Record System.
+<br>
+## 🚀 Features
+
+- Add new student record
+- Update existing student record
+- Delete student record
+- Save records in CSV format
+- Read records from a file
+- Form validation and feedback
+- Qt GUI-based interface
+
+## 🛠️ Tech Stack
+
+- **Language**: C++
+- **Framework**: Qt Creator
+- **UI**: Qt Widgets
+- **File Handling**: QTextStream, QFile
+- **Version Control**: Git & GitHub
+
+## 📁 Project Structure
+
+Student_Management_Record_System/
+│
+├── main.cpp
+├── mainwindow.cpp
+├── mainwindow.h
+├── mainwindow.ui
+├── StudentRecords.csv
+├── .gitignore
+└── README.md
+<br>
+
+## Created By:
+<br>
+Abdul Wasiu Soomro
+<br>
+Roll No: K25SW016
+<br>
+Student of MUET SZAB Campus Khairpur Mir's
+<br>
