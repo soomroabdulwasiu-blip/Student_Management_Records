@@ -11,7 +11,7 @@ This is our final semester Project is about Student management Record System.
 - Form validation and feedback
 - Qt GUI-based interface
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack8
 
 - **Language**: C++
 - **Framework**: Qt Creator
@@ -31,6 +31,9 @@ Student_Management_Record_System/
 ├── .gitignore
 └── README.md
 <br>
+
+## Application Fronted:
+![alt text](<Screenshot 2025-11-22 132335.png>)
 
 ## Created By:
 <br>
