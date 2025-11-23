@@ -4,7 +4,25 @@
 #include <QTextStream>
 #include <QMessageBox>
 
+// ------------------------------
+// Save ALL students to CSV
+// ------------------------------
+void saveAllToCSV(const QVector<Student>& students) {
+    QFile file("students.csv");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QTextStream out(&file);
+        out << "Name,Roll,Father,Caste,District,GPA\n";
+        for (const Student &s : students) {
+            out << s.name << "," << s.roll << "," << s.father << ","
+                << s.caste << "," << s.district << "," << s.gpa << "\n";
+        }
+        file.close();
+    }
+}
 
+// ------------------------------
+// Constructor
+// ------------------------------
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -15,18 +33,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pushButtonUpdate->setEnabled(false);
     ui->pushButtonDelete->setEnabled(false);
 
-    connect(ui->pushButtonAdd, &QPushButton::clicked, this, &MainWindow::onAddClicked);
-    connect(ui->pushButtonNext, &QPushButton::clicked, this, &MainWindow::onNextClicked);
-    connect(ui->pushButtonUpdate, &QPushButton::clicked, this, &MainWindow::onUpdateClicked);
-    connect(ui->pushButtonDelete, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
+    connect(ui->pushButtonAdd,     &QPushButton::clicked, this, &MainWindow::onAddClicked);
+    connect(ui->pushButtonNext,    &QPushButton::clicked, this, &MainWindow::onNextClicked);
+    connect(ui->pushButtonUpdate,  &QPushButton::clicked, this, &MainWindow::onUpdateClicked);
+    connect(ui->pushButtonDelete,  &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
 
     currentIndex = -1;
 
-    // ---------- Load existing CSV file ----------
+    // Load existing CSV file
     QFile file("students.csv");
     if(file.open(QIODevice::ReadOnly)) {
         QTextStream in(&file);
-        QString header = in.readLine(); // Skip header line
+        QString header = in.readLine(); // skip header
         while(!in.atEnd()) {
             QString line = in.readLine();
             QStringList fields = line.split(",");
@@ -39,13 +57,15 @@ MainWindow::MainWindow(QWidget *parent)
     }
 }
 
-MainWindow::~MainWindow()
-{
+// ------------------------------
+// Destructor
+// ------------------------------
+MainWindow::~MainWindow() {
     delete ui;
 }
 
 // ------------------------------
-// Helper Function: Clear fields
+// Clear all fields
 // ------------------------------
 void MainWindow::clearFields() {
     ui->lineEditName->clear();
@@ -57,7 +77,7 @@ void MainWindow::clearFields() {
 }
 
 // ------------------------------
-// Helper Function: Validate inputs
+// Validate inputs
 // ------------------------------
 bool MainWindow::validateFields() {
     if (ui->lineEditName->text().isEmpty()) {
@@ -88,45 +108,34 @@ bool MainWindow::validateFields() {
 }
 
 // ------------------------------
-// SAVE ALL STUDENTS TO CSV FILE
-// ------------------------------
-void saveAllToCSV(const QVector<Student>& students) {
-    QFile file("students.csv");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QTextStream out(&file);
-
-        // Header Line
-        out << "Name,Roll,Father,Caste,District,GPA\n";
-
-        // Write each record
-        for (const Student &s : students) {
-            out << s.name << "," << s.roll << "," << s.father << ","
-                << s.caste << "," << s.district << "," << s.gpa << "\n";
-        }
-        file.close();
-    }
-}
-
-// ------------------------------
-// ADD BUTTON FUNCTION
+// ADD BUTTON
 // ------------------------------
 void MainWindow::onAddClicked() {
     if (!validateFields()) return;
 
+    QString newRoll = ui->lineEditRoll->text();
+
+    // Check duplicate roll
+    for (const Student &s : students) {
+        if (s.roll == newRoll) {
+            QMessageBox::warning(this, "Duplicate Roll",
+                                 "This Roll Number already exists!");
+            return;
+        }
+    }
+
     Student s;
     s.name = ui->lineEditName->text();
-    s.roll = ui->lineEditRoll->text();
+    s.roll = newRoll;
     s.father = ui->lineEditFather->text();
     s.caste = ui->lineEditCaste->text();
     s.district = ui->lineEditDistrict->text();
     s.gpa = ui->lineEditGPA->text();
 
     students.append(s);
-
-    // Save all records (including new) to CSV
     saveAllToCSV(students);
 
-    QMessageBox::information(this, "Success", "Student added successfully (saved to CSV)!");
+    QMessageBox::information(this, "Success", "Student added successfully!");
 
     clearFields();
     ui->pushButtonAdd->setEnabled(true);
@@ -135,7 +144,7 @@ void MainWindow::onAddClicked() {
 }
 
 // ------------------------------
-// NEXT BUTTON FUNCTION
+// NEXT BUTTON
 // ------------------------------
 void MainWindow::onNextClicked() {
     if (students.isEmpty()) {
@@ -144,8 +153,8 @@ void MainWindow::onNextClicked() {
     }
 
     currentIndex = (currentIndex + 1) % students.size();
-
     Student s = students[currentIndex];
+
     ui->lineEditName->setText(s.name);
     ui->lineEditRoll->setText(s.roll);
     ui->lineEditFather->setText(s.father);
@@ -159,15 +168,28 @@ void MainWindow::onNextClicked() {
 }
 
 // ------------------------------
-// UPDATE BUTTON FUNCTION
+// UPDATE BUTTON
 // ------------------------------
 void MainWindow::onUpdateClicked() {
-    if (currentIndex < 0 || currentIndex >= students.size()) return;
     if (!validateFields()) return;
+    if (currentIndex < 0 || currentIndex >= students.size()) return;
 
+    QString enteredRoll = ui->lineEditRoll->text();
+
+    // Check duplicate roll for other students
+    for (int i = 0; i < students.size(); i++) {
+        if (i == currentIndex) continue; // skip current student
+        if (students[i].roll == enteredRoll) {
+            QMessageBox::warning(this, "Duplicate Roll",
+                                 "This Roll Number already exists! Update cancelled.");
+            return;
+        }
+    }
+
+    // Update current student
     Student &s = students[currentIndex];
     s.name = ui->lineEditName->text();
-    s.roll = ui->lineEditRoll->text();
+    s.roll = enteredRoll;
     s.father = ui->lineEditFather->text();
     s.caste = ui->lineEditCaste->text();
     s.district = ui->lineEditDistrict->text();
@@ -175,7 +197,8 @@ void MainWindow::onUpdateClicked() {
 
     saveAllToCSV(students);
 
-    QMessageBox::information(this, "Updated", "Student record updated successfully (CSV updated)!");
+    QMessageBox::information(this, "Updated",
+                             "Student record updated successfully!");
 
     clearFields();
     ui->pushButtonAdd->setEnabled(true);
@@ -184,7 +207,7 @@ void MainWindow::onUpdateClicked() {
 }
 
 // ------------------------------
-// DELETE BUTTON FUNCTION
+// DELETE BUTTON
 // ------------------------------
 void MainWindow::onDeleteClicked() {
     if (currentIndex < 0 || currentIndex >= students.size()) return;
@@ -205,5 +228,6 @@ void MainWindow::onDeleteClicked() {
         onNextClicked();
     }
 
-    QMessageBox::information(this, "Deleted", "Student record deleted successfully from CSV!");
+    QMessageBox::information(this, "Deleted",
+                             "Student record deleted successfully!");
 }
